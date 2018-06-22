@@ -17,7 +17,7 @@
       
 struct timespec reqT = { 2, 0};
 struct timespec remainT;
- 
+
 int main(int argc, char **argv) 
 {
     Display *display;
@@ -28,12 +28,35 @@ int main(int argc, char **argv)
     char *textIcon = "ikonka";
     char *textWindow = "okienko";
     char *text;
+    char *progName;
     int screen, nr;
     XVisualInfo  xvInfo;
     XVisualInfo  *xv_info_p ;
     Pixmap icon_pixmap;
     XTextProperty windowName, iconName ;
+    XClassHint *windowClasHint;
+    XSizeHints *windowSizeHint;
+    XWMHints   *windowWMHints;
     
+    
+    windowClasHint = XAllocClassHint();
+    windowSizeHint = XAllocSizeHints();
+    windowWMHints = XAllocWMHints();
+    if (NULL == windowWMHints)
+    {
+        printf(" problem alocating WM hints");
+        exit(1);
+    }
+    
+    if (1< argc)
+    {
+        progName = argv[0];
+        
+    }
+    else
+    {
+        progName = " Default Name";
+    }
     
     MACRO_TO_SET_TEXTPROPERTY(textIcon, iconName);
     MACRO_TO_SET_TEXTPROPERTY( textWindow, windowName);
@@ -66,9 +89,6 @@ int main(int argc, char **argv)
     /* select kind of events we are interested in */
     XSelectInput(display, window, ExposureMask | KeyPressMask | FocusChangeMask);
     XSelectInput(display, window2, ExposureMask | LeaveWindowMask);
-    /* map (show) the window */
-    XMapWindow(display, window);
-    XMapWindow(display, window2);
     
     xv_info_p = XGetVisualInfo(display, VisualNoMask, &xvInfo, &nr);
     
@@ -86,7 +106,23 @@ int main(int argc, char **argv)
     
     icon_pixmap = XCreateBitmapFromData(display,window, icon_bitmap_bits , icon_bitmap_width, icon_bitmap_height);
     //TODO
-    XSetWMProperties(display,window, &windowName, &iconName,argv,argc,NULL, NULL, NULL);
+    windowClasHint->res_name  = progName;
+    windowClasHint->res_class = "Window1";
+    
+    windowSizeHint->flags = PPosition | PSize | PMinSize ;
+    windowSizeHint->min_width = 200;
+    windowSizeHint->min_height = 200;
+    
+    windowWMHints->icon_mask = icon_pixmap;
+    windowWMHints->input = True;
+    windowWMHints->initial_state = IconicState;
+    windowWMHints->flags = IconPixmapHint | StateHint | InputHint;
+    
+    XSetWMProperties(display,window, &windowName, &iconName,argv,argc,windowSizeHint, windowWMHints, windowClasHint);
+    
+    /* map (show) the window */
+    XMapWindow(display, window);
+    XMapWindow(display, window2);
     
   /* event loop */
     while (1) 
