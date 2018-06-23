@@ -3,6 +3,8 @@
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <X11/Xatom.h>
+#include <X11/Xos.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -15,8 +17,48 @@
   {   printf(" not worked to make text property from string: %s \n",string_pointer);\
       exit(1);}
       
+
+void getGC(Window win, GC *gc, XFontStruct *font_info, Display *display);
+
 struct timespec reqT = { 2, 0};
 struct timespec remainT;
+//(win, gc, font_info);
+
+
+void getGC(Window win, GC *gc, XFontStruct *font_info, Display *display)
+{
+		unsigned long valuemask = 0; /* Ignore XGCvalues and
+		* use defaults */
+		XGCValues values;
+		unsigned int line_width = 6;
+		int line_style = LineOnOffDash;
+		int cap_style = CapRound;
+		int join_style = JoinRound;
+		int dash_offset = 0;
+		static char dash_list[] = {12, 24};
+		int list_length = 2;
+
+		/* Create default Graphics Context */
+		*gc = XCreateGC(display, win, valuemask, &values);
+		/* Specify font */
+		if (NULL != font_info)
+		{
+		//XSetFont(display, *gc, font_info−>fid);
+		}
+
+/* Specify black foreground since default window background
+* is white and default foreground is undefined */
+//XSetForeground(display, *gc, BlackPixel(display,screen_num));
+/* Set line attributes */
+XSetLineAttributes(display, *gc, line_width, line_style,
+cap_style, join_style);
+/* Set dashes */
+XSetDashes(display, *gc, dash_offset, dash_list, list_length);
+}
+
+
+
+
 
 int main(int argc, char **argv) 
 {
@@ -37,7 +79,7 @@ int main(int argc, char **argv)
     XClassHint *windowClasHint;
     XSizeHints *windowSizeHint;
     XWMHints   *windowWMHints;
-    
+	GC graphContent;
     
     windowClasHint = XAllocClassHint();
     windowSizeHint = XAllocSizeHints();
@@ -113,14 +155,18 @@ int main(int argc, char **argv)
     windowSizeHint->min_width = 200;
     windowSizeHint->min_height = 200;
     
-    windowWMHints->icon_mask = icon_pixmap;
+    windowWMHints->icon_pixmap = icon_pixmap;
+	windowWMHints->icon_window = window;
     windowWMHints->input = True;
-    windowWMHints->initial_state = IconicState;
+    windowWMHints->initial_state = NormalState;
     windowWMHints->flags = IconPixmapHint | StateHint | InputHint;
     
     XSetWMProperties(display,window, &windowName, &iconName,argv,argc,windowSizeHint, windowWMHints, windowClasHint);
+	
+	getGC(window,&graphContent,NULL, display );    
+	//XGetGCValues();
     
-    /* map (show) the window */
+/* map (show) the window */
     XMapWindow(display, window);
     XMapWindow(display, window2);
     
