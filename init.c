@@ -2,7 +2,7 @@
 #include <X11/Xlib.h>
 
 
-void getGC(Window win, GC *gc, XFontStruct *font_info, Display *display, int screen_nr)
+void initGC(Window win, GC *gc, XFontStruct *font_info, Display *display, int screen_nr)
 {
     unsigned long valuemask = 0; /* Ignore XGCvalues and
     * use defaults */

@@ -12,16 +12,19 @@
 #include "icon_bitmap"
 #include "init.h"
 
+
+// text definitions
+static char *msg = "Hello, World! aaa";
+static char *msg2 = " second window";
+static char *textIcon = "ikonka";
+static char *textWindow = "okienko";
+
+
 #define MACRO_TO_SET_TEXTPROPERTY(string_pointer,text_property)        \
   if (True != XStringListToTextProperty(&string_pointer,1,&text_property))\
   {   printf(" not worked to make text property from string: %s \n",string_pointer);\
       exit(1);}
       
-
-
-struct timespec reqT = { 2, 0};
-struct timespec remainT;
-//(win, gc, font_info);
 
 
 
@@ -31,10 +34,6 @@ int main(int argc, char **argv)
     Display *display;
     Window window, window2;
     XEvent event;
-    char *msg = "Hello, World! aaa";
-    char *msg2 = " second window";
-    char *textIcon = "ikonka";
-    char *textWindow = "okienko";
     char *text;
     char *progName;
     int screen, nr;
@@ -45,11 +44,15 @@ int main(int argc, char **argv)
     XClassHint *windowClasHint;
     XSizeHints *windowSizeHint;
     XWMHints   *windowWMHints;
-	GC graphContent;
+    GC graphContent;
+    struct timespec reqT = { 2, 0};
+    struct timespec remainT;
+
     
     windowClasHint = XAllocClassHint();
     windowSizeHint = XAllocSizeHints();
     windowWMHints = XAllocWMHints();
+    
     if (NULL == windowWMHints)
     {
         printf(" problem alocating WM hints");
@@ -76,14 +79,13 @@ int main(int argc, char **argv)
     if (display == NULL) 
     {
         fprintf(stderr, "Cannot open display \n");
-;
         exit(1);
     }
     //need to use here macro
     printf(" diplay name %s \n",DisplayString(display));
     
         //printf(" screen %d \n",display->default_screen);
- //XSync();
+     //XVSync();
     screen = DefaultScreen(display);
     
     /* create window */
@@ -95,7 +97,7 @@ int main(int argc, char **argv)
     
     printf(" window %ld %ld \n",window, window2);
     /* select kind of events we are interested in */
-    XSelectInput(display, window, ExposureMask | KeyPressMask | FocusChangeMask);
+    XSelectInput(display, window, ExposureMask | KeyPressMask | FocusChangeMask | ButtonPressMask);
     XSelectInput(display, window2, ExposureMask | LeaveWindowMask);
     
     xv_info_p = XGetVisualInfo(display, VisualNoMask, &xvInfo, &nr);
@@ -122,15 +124,16 @@ int main(int argc, char **argv)
     windowSizeHint->min_height = 200;
     
     windowWMHints->icon_pixmap = icon_pixmap;
-	windowWMHints->icon_window = window;
+    windowWMHints->icon_window = window;
     windowWMHints->input = True;
     windowWMHints->initial_state = NormalState;
     windowWMHints->flags = IconPixmapHint | StateHint | InputHint;
     
-    XSetWMProperties(display,window, &windowName, &iconName,argv,argc,windowSizeHint, windowWMHints, windowClasHint);
-	
-    getGC(window,&graphContent,NULL, display, screen);    
-	//XGetGCValues();
+    XSetWMProperties(display,window, &windowName, &iconName,argv,argc,windowSizeHint, \
+    windowWMHints, windowClasHint);
+    
+    initGC(window,&graphContent,NULL, display, screen);   
+     
     
 /* map (show) the window */
     XMapWindow(display, window);
@@ -140,17 +143,15 @@ int main(int argc, char **argv)
     while (1) 
     {
         XNextEvent(display, &event);
-	  
+      
           /* draw or redraw the window */
-          if (event.type == Expose) 
+          if ((event.type == Expose) && (event.xexpose.count == 0))
           {
-              XFillRectangle(display, window, DefaultGC(display, screen), 20, 20, 50, 50);
-              
+              XFillRectangle(display, window, DefaultGC(display, screen), 20, 20, 50, 50);           
               XFillRectangle(display, window2, DefaultGC(display, screen), 10, 10, 50, 10);
               
               XDrawString(display, window, DefaultGC(display, screen), 20, 90, msg,
-              strlen(msg));
-              
+              strlen(msg));              
               XDrawString(display, window2, DefaultGC(display, screen), 10, 90, msg2,
               strlen(msg2));
               
@@ -162,10 +163,10 @@ int main(int argc, char **argv)
               //XWriteBitmapFile(display, window,icon_pixmap,icon_bitmap_width, icon_bitmap_height, 10,200);
               
               //printf(" Expose \n" );
-          }
+        }
         if (FocusOut == event.type )
         {
-            printf(" Focus \n");
+            printf(" Focus OUT from 1 window\n");
         }
         /* exit on key press */
         if (event.type == KeyPress) 
@@ -175,6 +176,11 @@ int main(int argc, char **argv)
         if (LeaveNotify == event.type)
         {
             printf(" leaving 2 window \n");
+        }
+
+        if (ButtonPress == event.type)
+        {
+            printf(" pressed mouse \n");
         }
     }
     
