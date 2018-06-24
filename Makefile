@@ -5,17 +5,16 @@ COMP_ATT = -Wall
 LIBS = -lX11
 BUILD = build
 
-SOURCES = hello.c
+SOURCES = hello.c init.c
 
-OBJECTS = hello.o \
+OBJECTS = hello.o init.o
 
 OUT = xwin1
 
 
+#	 $(CC)  $(SOURCES) $(LIBS)  $(COMP_ATT)
 
-all:
-	 $(CC)  $(SOURCES) $(LIBS)  $(COMP_ATT)
-	#$(SOURCES) $(OUT)
+all:	$(SOURCES) $(OUT)
 
 debug:
 	$(CC)  $(SOURCES) -ggdb  $(COMP_ATT) $(LIBS)
@@ -23,9 +22,9 @@ debug:
 clean:
 	rm -f *.o
 
-#$(OUT): $(OBJECTS) 
- 	#$(CC) $(OBJECTS) $(LIBS) -o $@
+$(OUT): $(OBJECTS) 
+	$(CC) $(addprefix $(BUILD)/,$^) $(LIBS) -o $@
 
 
-%.o : %.c
-	$(CC) $< -c $(COMP_ATT) -o $@
+.c.o:
+	$(CC) $(COMP_ATT) $< -c -o $(BUILD)/$*.o 
