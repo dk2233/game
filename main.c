@@ -45,6 +45,7 @@ int main(int argc, char **argv)
     XSizeHints *windowSizeHint;
     XWMHints   *windowWMHints;
     GC graphContent;
+    XFontStruct fontsForMe;
     struct timespec reqT = { 2, 0};
     struct timespec remainT;
 
@@ -107,7 +108,7 @@ int main(int argc, char **argv)
     //xv_info_p;
     if (NULL != xv_info_p)
     {
-        printf(" depth %d ",xv_info_p->screen);
+        printf(" depth %d \n",xv_info_p->screen);
     }
     else
     {
@@ -132,7 +133,7 @@ int main(int argc, char **argv)
     XSetWMProperties(display,window, &windowName, &iconName,argv,argc,windowSizeHint, \
     windowWMHints, windowClasHint);
     
-    initGC(window,&graphContent,NULL, display, screen);   
+    initGC(window,&graphContent,&fontsForMe, display, screen);   
      
     
 /* map (show) the window */
@@ -147,30 +148,31 @@ int main(int argc, char **argv)
           /* draw or redraw the window */
           if ((event.type == Expose) && (event.xexpose.count == 0))
           {
-              XFillRectangle(display, window, DefaultGC(display, screen), 20, 20, 50, 50);           
-              XFillRectangle(display, window2, DefaultGC(display, screen), 10, 10, 50, 10);
-              
-              XDrawString(display, window, DefaultGC(display, screen), 20, 90, msg,
-              strlen(msg));              
-              XDrawString(display, window2, DefaultGC(display, screen), 10, 90, msg2,
-              strlen(msg2));
-              
+              XFillRectangle(display, window, graphContent, 20, 20, 50, 50);           
+              XFillRectangle(display, window2, graphContent, 10, 10, 50, 10);
+
+              XDrawString(display, window, graphContent, 20, 90, msg,
+                      strlen(msg));              
+              XDrawString(display, window2, graphContent, 10, 90, msg2,
+                      strlen(msg2));
+
               sprintf(text,"height is %d",DisplayHeight(display,screen)); 
-              XDrawString(display, window, DefaultGC(display,screen),10,130,text,strlen(text));   
+              XDrawString(display, window, graphContent,10,130,text,strlen(text));   
               sprintf(text,"width is %d",DisplayWidth(display,screen));
-              XDrawString(display, window, DefaultGC(display,screen),10,150,text,strlen(text));   
-              
+              XDrawString(display, window, graphContent,10,150,text,strlen(text));   
+
               //XWriteBitmapFile(display, window,icon_pixmap,icon_bitmap_width, icon_bitmap_height, 10,200);
-              
+
               //printf(" Expose \n" );
-        }
-        if (FocusOut == event.type )
-        {
-            printf(" Focus OUT from 1 window\n");
-        }
+          }
+          if (FocusOut == event.type )
+          {
+              printf(" Focus OUT from 1 window\n");
+          }
         /* exit on key press */
         if (event.type == KeyPress) 
         {
+            XFreeGC(display, graphContent);
             break;
         }
         if (LeaveNotify == event.type)

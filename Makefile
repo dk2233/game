@@ -17,7 +17,7 @@ OUT = xwin1
 all:	$(SOURCES) $(OUT)
 
 debug:
-	$(CC)  $(SOURCES) -ggdb  $(COMP_ATT) $(LIBS)
+	$(CC) -ggdb  $(SOURCES)    $(LIBS) -o $(OUT)
 
 clean:
 	rm -f $(BUILD)/*.o
